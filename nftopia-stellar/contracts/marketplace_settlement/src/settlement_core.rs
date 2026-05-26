@@ -559,11 +559,7 @@ impl MarketplaceSettlement {
     }
 
     /// Add allowed NFT contract (admin only)
-    pub fn add_allowed_nft_contract(
-        env: Env,
-        admin: Address,
-        contract: Address,
-    ) -> Result<(), SettlementError> {
+    pub fn add_allowed_nft_contract(env: Env, admin: Address, contract: Address) -> Result<(), SettlementError> {
         admin.require_auth();
         let admin_config: AdminConfig = env
             .storage()
@@ -578,11 +574,7 @@ impl MarketplaceSettlement {
     }
 
     /// Remove allowed NFT contract (admin only)
-    pub fn remove_allowed_nft_contract(
-        env: Env,
-        admin: Address,
-        contract: Address,
-    ) -> Result<(), SettlementError> {
+    pub fn remove_allowed_nft_contract(env: Env, admin: Address, contract: Address) -> Result<(), SettlementError> {
         admin.require_auth();
         let admin_config: AdminConfig = env
             .storage()
@@ -597,11 +589,7 @@ impl MarketplaceSettlement {
     }
 
     /// Add allowed token contract (admin only)
-    pub fn add_allowed_token_contract(
-        env: Env,
-        admin: Address,
-        contract: Address,
-    ) -> Result<(), SettlementError> {
+    pub fn add_allowed_token_contract(env: Env, admin: Address, contract: Address) -> Result<(), SettlementError> {
         admin.require_auth();
         let admin_config: AdminConfig = env
             .storage()
@@ -616,11 +604,7 @@ impl MarketplaceSettlement {
     }
 
     /// Remove allowed token contract (admin only)
-    pub fn remove_allowed_token_contract(
-        env: Env,
-        admin: Address,
-        contract: Address,
-    ) -> Result<(), SettlementError> {
+    pub fn remove_allowed_token_contract(env: Env, admin: Address, contract: Address) -> Result<(), SettlementError> {
         admin.require_auth();
         let admin_config: AdminConfig = env
             .storage()

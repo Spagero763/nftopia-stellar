@@ -1,7 +1,7 @@
 use crate::error::ContractError;
 use crate::storage::DataKey;
 use crate::types::role;
-use soroban_sdk::{panic_with_error, Address, Env};
+use soroban_sdk::{Address, Env, panic_with_error};
 
 pub fn grant_role(env: &Env, caller: &Address, target: &Address, role: u32) {
     require_owner(env, caller);

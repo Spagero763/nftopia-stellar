@@ -2,7 +2,7 @@ use crate::error::ContractError;
 use crate::events;
 use crate::storage::DataKey;
 use crate::types::{CollectionConfig, RoyaltyInfo, TokenMetadata};
-use soroban_sdk::{contract, contractimpl, panic_with_error, Address, Env, String, Vec};
+use soroban_sdk::{Address, Env, String, Vec, contract, contractimpl, panic_with_error};
 
 #[contract]
 pub struct NftCollection;

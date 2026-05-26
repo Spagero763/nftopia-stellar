@@ -1,12 +1,12 @@
-use soroban_sdk::{contract, contractimpl, Address, Bytes, Env, Map, String, Vec};
+use soroban_sdk::{Address, Bytes, Env, Map, String, Vec, contract, contractimpl};
 
 use crate::error::TransactionError;
 use crate::events;
 use crate::tx_storage as storage;
 use crate::types::{
-    default_gas_config, BatchExecutionResult, ExecutionResult, GasEstimate, GasOptimizationConfig,
-    Operation, OperationResult, RecoveryResult, RecoveryStrategy, SignatureRecord, Transaction,
-    TransactionBlueprint, TransactionState, TransactionStatus,
+    BatchExecutionResult, ExecutionResult, GasEstimate, GasOptimizationConfig, Operation,
+    OperationResult, RecoveryResult, RecoveryStrategy, SignatureRecord, Transaction,
+    TransactionBlueprint, TransactionState, TransactionStatus, default_gas_config,
 };
 
 const STROOPS_PER_GAS: i128 = 1;
