@@ -1,7 +1,9 @@
 #![cfg(test)]
 
-use soroban_sdk::{testutils::Address as _, Address, Bytes, Env, Symbol};
-
+use soroban_sdk::{
+    testutils::{Address as _, Ledger as _},
+    Address, Bytes, Env, Symbol,
+};
 use crate::{
     error::SettlementError,
     royalty_distributor::RoyaltyDistributor,
@@ -267,7 +269,7 @@ fn test_get_nonexistent_auction_fails() {
 #[test]
 fn test_update_fee_config_by_admin() {
     use crate::types::FeeConfig;
-    let (env, _cid, client) = new_env();
+    let (env, _cid, _client) = new_env();
     let admin = Address::generate(&env);
     let cfg = FeeConfig {
         platform_fee_bps: 300,
@@ -475,4 +477,188 @@ fn test_reveal_wrong_salt_fails() {
 fn test_cleanup_expired_commitments() {
     let (_env, _cid, client) = new_env();
     client.cleanup_expired_commitments();
+}
+
+// ─── Rate Limiter ────────────────────────────────────────────────────────────
+
+#[test]
+fn test_rate_limiter_defaults_and_cooldown_active() {
+    let (env, cid, client) = new_env();
+    let seller = Address::generate(&env);
+    let nft = Address::generate(&env);
+    let creator = Address::generate(&env);
+    reg(&env, &cid, &nft, &creator);
+
+    // Default rate limit for create_sale is 10 calls / 60s
+    // Make 10 calls successfully
+    for _ in 0..10 {
+        let _id = client.create_sale(
+            &seller,
+            &nft,
+            &1u64,
+            &1_000_000i128,
+            &mk_asset(&env),
+            &86400u64,
+        );
+    }
+
+    // The 11th call must fail with CooldownActive
+    let res = client.try_create_sale(
+        &seller,
+        &nft,
+        &1u64,
+        &1_000_000i128,
+        &mk_asset(&env),
+        &86400u64,
+    );
+    assert_eq!(res.unwrap().unwrap_err(), SettlementError::CooldownActive.into());
+}
+
+#[test]
+fn test_rate_limiter_independent_users_and_functions() {
+    let (env, cid, client) = new_env();
+    let seller_1 = Address::generate(&env);
+    let seller_2 = Address::generate(&env);
+    let nft = Address::generate(&env);
+    let creator = Address::generate(&env);
+    reg(&env, &cid, &nft, &creator);
+
+    // seller_1 spams create_sale until throttled (10 calls)
+    for _ in 0..10 {
+        let _id = client.create_sale(
+            &seller_1,
+            &nft,
+            &1u64,
+            &1_000_000i128,
+            &mk_asset(&env),
+            &86400u64,
+        );
+    }
+    // seller_1 is blocked
+    assert_eq!(
+        client.try_create_sale(&seller_1, &nft, &1u64, &1_000_000i128, &mk_asset(&env), &86400u64).unwrap().unwrap_err(),
+        SettlementError::CooldownActive.into()
+    );
+
+    // seller_2 should NOT be blocked (independent budgets)
+    let id_2 = client.create_sale(
+        &seller_2,
+        &nft,
+        &1u64,
+        &1_000_000i128,
+        &mk_asset(&env),
+        &86400u64,
+    );
+    assert_eq!(id_2, 11u64);
+
+    // seller_1 can still create_auction (independent functions)
+    let auc_id = client.create_auction(
+        &seller_1,
+        &nft,
+        &1u64,
+        &100_000i128,
+        &80_000i128,
+        &3600u64,
+        &1_000i128,
+        &AuctionType::English,
+        &mk_asset(&env),
+    );
+    assert_eq!(auc_id, 1u64);
+}
+
+#[test]
+fn test_rate_limiter_window_reset() {
+    let (env, cid, client) = new_env();
+    let seller = Address::generate(&env);
+    let nft = Address::generate(&env);
+    let creator = Address::generate(&env);
+    reg(&env, &cid, &nft, &creator);
+
+    // Spam create_sale (10 calls)
+    for _ in 0..10 {
+        let _id = client.create_sale(
+            &seller,
+            &nft,
+            &1u64,
+            &1_000_000i128,
+            &mk_asset(&env),
+            &86400u64,
+        );
+    }
+    // Blocked
+    assert_eq!(
+        client.try_create_sale(&seller, &nft, &1u64, &1_000_000i128, &mk_asset(&env), &86400u64).unwrap().unwrap_err(),
+        SettlementError::CooldownActive.into()
+    );
+
+    // Move ledger time forward by 60 seconds (window duration is 60s)
+    let new_timestamp = env.ledger().timestamp() + 60;
+    env.ledger().set_timestamp(new_timestamp);
+
+    // Now it should succeed again!
+    let id = client.create_sale(
+        &seller,
+        &nft,
+        &1u64,
+        &1_000_000i128,
+        &mk_asset(&env),
+        &86400u64,
+    );
+    assert!(id > 0);
+}
+
+#[test]
+fn test_rate_limiter_admin_update_config() {
+    let (env, _cid, _client) = new_env();
+    let admin = Address::generate(&env);
+    
+    // Setup known admin (using second client initialized with admin)
+    let cid2 = env.register(MarketplaceSettlement, ());
+    let c2 = MarketplaceSettlementClient::new(&env, &cid2);
+    c2.initialize(&admin);
+
+    let bidder = Address::generate(&env);
+    let seller = Address::generate(&env);
+    let nft = Address::generate(&env);
+    let creator = Address::generate(&env);
+    reg(&env, &cid2, &nft, &creator);
+
+    let id = c2.create_auction(
+        &seller,
+        &nft,
+        &1u64,
+        &100_000i128,
+        &80_000i128,
+        &3600u64,
+        &1_000i128,
+        &AuctionType::English,
+        &mk_asset(&env),
+    );
+
+    // Default rate limit for place_bid is 5 calls / 60s
+    // Admin updates limit to 2 calls / 30s
+    let place_bid_sym = Symbol::new(&env, "place_bid");
+    c2.update_rate_limit(&place_bid_sym, &2u32, &30u64, &admin);
+
+    // Retrieve config to verify update
+    let config_opt = c2.get_rate_limit_config(&place_bid_sym);
+    assert!(config_opt.is_some());
+    let cfg = config_opt.unwrap();
+    assert_eq!(cfg.limit, 2u32);
+    assert_eq!(cfg.window_seconds, 30u64);
+
+   // place 2 bids successfully
+    c2.place_bid(&id, &bidder, &110_000i128, &None);
+    c2.place_bid(&id, &bidder, &120_000i128, &None);
+
+    // 3rd bid should fail under new configuration
+    let res = c2.try_place_bid(&id, &bidder, &130_000i128, &None);
+   
+    if let Ok(Err(invoke_error)) = res {
+        let actual_error: soroban_sdk::Error = invoke_error.into();
+        let expected_error: soroban_sdk::Error = SettlementError::CooldownActive.into();
+        assert_eq!(actual_error, expected_error);
+    } else {
+        panic!("Expected a contract invocation error (InvokeError), but got: {:?}", res);
+    }
 }
