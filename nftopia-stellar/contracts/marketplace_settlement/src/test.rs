@@ -87,14 +87,7 @@ fn test_create_sale_success() {
     let nft = Address::generate(&env);
     let creator = Address::generate(&env);
     reg(&env, &cid, &nft, &creator, &_admin, &_asset);
-    let id = client.create_sale(
-        &seller,
-        &nft,
-        &1u64,
-        &1_000_000i128,
-        &_asset,
-        &86400u64,
-    );
+    let id = client.create_sale(&seller, &nft, &1u64, &1_000_000i128, &_asset, &86400u64);
     assert_eq!(id, 1u64);
 }
 
@@ -120,14 +113,7 @@ fn test_cancel_sale_by_seller() {
     let nft = Address::generate(&env);
     let creator = Address::generate(&env);
     reg(&env, &cid, &nft, &creator, &_admin, &_asset);
-    let id = client.create_sale(
-        &seller,
-        &nft,
-        &1u64,
-        &1_000_000i128,
-        &_asset,
-        &86400u64,
-    );
+    let id = client.create_sale(&seller, &nft, &1u64, &1_000_000i128, &_asset, &86400u64);
     client.cancel_transaction(&id, &Symbol::new(&env, "sale"), &seller);
 }
 
@@ -140,14 +126,7 @@ fn test_cancel_sale_non_seller_fails() {
     let nft = Address::generate(&env);
     let creator = Address::generate(&env);
     reg(&env, &cid, &nft, &creator, &_admin, &_asset);
-    let id = client.create_sale(
-        &seller,
-        &nft,
-        &1u64,
-        &1_000_000i128,
-        &_asset,
-        &86400u64,
-    );
+    let id = client.create_sale(&seller, &nft, &1u64, &1_000_000i128, &_asset, &86400u64);
     assert!(client
         .try_cancel_transaction(&id, &Symbol::new(&env, "sale"), &attacker)
         .is_err());
@@ -162,14 +141,7 @@ fn test_execute_sale_wrong_payment_fails() {
     let nft = Address::generate(&env);
     let creator = Address::generate(&env);
     reg(&env, &cid, &nft, &creator, &_admin, &_asset);
-    let id = client.create_sale(
-        &seller,
-        &nft,
-        &1u64,
-        &1_000_000i128,
-        &_asset,
-        &86400u64,
-    );
+    let id = client.create_sale(&seller, &nft, &1u64, &1_000_000i128, &_asset, &86400u64);
     assert!(client.try_execute_sale(&id, &buyer, &999_999i128).is_err());
 }
 
