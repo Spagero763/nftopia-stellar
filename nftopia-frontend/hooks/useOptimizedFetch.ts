@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { fetchWithAuth } from "@/lib/api/fetchWithAuth";
-import { AppApiError, normalizeApiError } from "@/utils/fetchUtils";
+import {
+  AppApiError,
+  normalizeApiError,
+  parseResponseError,
+} from "@/utils/fetchUtils";
 
 const staticCache = new Map<string, any>();
 const dedupeMap = new Map<string, Promise<any>>();
@@ -70,6 +74,13 @@ export function useOptimizedFetch<T = unknown>(
           ...options?.fetchOptions,
           signal,
         });
+
+        // FIX: Check if response failed and map it to an AppApiError
+        if (!res.ok) {
+          const parsedError = await parseResponseError(res);
+          throw parsedError;
+        }
+
         const json = (await res.json()) as T;
         staticCache.set(cacheKey, json);
         return json;

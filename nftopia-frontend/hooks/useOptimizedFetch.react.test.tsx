@@ -24,7 +24,7 @@ describe("useOptimizedFetch (React 18 compatible)", () => {
     render(<OptimizedFetchTestComponent url="test-url" />);
     expect(screen.getByTestId("loading").textContent).toBe("loading");
     await waitFor(() =>
-      expect(screen.getByTestId("data").textContent).toContain("foo")
+      expect(screen.getByTestId("data").textContent).toContain("foo"),
     );
     expect(screen.getByTestId("loading").textContent).toBe("not-loading");
   });
@@ -40,10 +40,10 @@ describe("useOptimizedFetch (React 18 compatible)", () => {
       <OptimizedFetchTestComponent
         url="test-url"
         options={{ retry: 1, retryDelay: 10 }}
-      />
+      />,
     );
     await waitFor(() =>
-      expect(screen.getByTestId("data").textContent).toContain("foo")
+      expect(screen.getByTestId("data").textContent).toContain("foo"),
     );
   });
 
