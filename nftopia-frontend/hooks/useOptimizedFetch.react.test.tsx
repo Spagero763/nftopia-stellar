@@ -54,7 +54,13 @@ describe("useOptimizedFetch (React 18 compatible)", () => {
       json: async () => ({ message: "Internal Server Error" }),
     });
 
-    render(<OptimizedFetchTestComponent url="test-url-error" />);
+    // FIX: Pass options to turn off automatic retries so it drops straight to the catch block
+    render(
+      <OptimizedFetchTestComponent
+        url="test-url-error"
+        options={{ retry: 0, retryDelay: 0 }}
+      />,
+    );
 
     // Flush microtasks explicitly so hook processes the network error state transition
     await act(async () => {
