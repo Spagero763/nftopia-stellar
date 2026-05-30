@@ -18,6 +18,7 @@ import { FileDropZone } from "@/lib";
 import type { FileWithMeta } from "@/lib/interfaces";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useAuth } from "@/lib/stores/auth-store";
+import { getValidationFieldMessage } from "@/utils/fetchUtils";
 import { useLocalizedRoute } from "@/lib/routing";
 
 interface CreateCollectionForm {
@@ -83,7 +84,10 @@ export default function CreateYourCollection() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (field: keyof CreateCollectionForm, value: string) => {
+  const handleInputChange = (
+    field: keyof CreateCollectionForm,
+    value: string,
+  ) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
@@ -96,6 +100,7 @@ export default function CreateYourCollection() {
 
     setErrors({});
     setIsLoading(true);
+    setIsUploadingImage(true);
 
     try {
       const csrfToken = await getCookie();
@@ -131,6 +136,15 @@ export default function CreateYourCollection() {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
+        const serverNameErr = getValidationFieldMessage(err, "name");
+        const serverDescErr = getValidationFieldMessage(err, "description");
+        if (serverNameErr || serverDescErr) {
+          setErrors({
+            name: serverNameErr,
+            description: serverDescErr,
+            general: err.message || t("createCollection.errors.failedToCreate"),
+          });
+        }
         throw new Error(err.message || t("createCollection.errors.failedToCreate"));
       }
 
@@ -138,15 +152,16 @@ export default function CreateYourCollection() {
       showSuccess(t("createCollection.success"));
 
       setTimeout(() => {
-        router.push(`/${locale}/creator-dashboard/collections`);
         router.push(localizedRoute("/creator-dashboard/collections"));
       }, 2000);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : t("createCollection.errors.failedToCreate");
-      setErrors({ general: errorMessage });
+    } catch (error: any) {
+      console.error("Error creating collection:", error);
+      const errorMessage = error.message || t("createCollection.errors.failedToCreate");
+      setErrors((prev) => ({ ...prev, general: errorMessage }));
       showError(errorMessage);
     } finally {
       setIsLoading(false);
+      setIsUploadingImage(false);
     }
   };
 
@@ -155,7 +170,7 @@ export default function CreateYourCollection() {
       <div className="min-h-[100vh] bg-nftopia-background flex items-center justify-center">
         <Card className="w-full max-w-md bg-nftopia-card border border-nftopia-border backdrop-blur-sm">
           <CardContent className="p-8 text-center">
-            <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
+            <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4 animate-bounce" />
             <h2 className="text-2xl font-bold text-nftopia-text mb-2">
               {t("createCollection.collectionCreated")}
             </h2>
@@ -270,6 +285,11 @@ export default function CreateYourCollection() {
                   className="bg-nftopia-background border-nftopia-border text-nftopia-text placeholder-nftopia-subtext min-h-[120px]"
                   maxLength={500}
                 />
+                {errors.description && (
+                  <p className="text-red-400 text-xs font-medium mt-1">
+                    {errors.description}
+                  </p>
+                )}
                 <p className="text-nftopia-subtext text-xs">
                   {form.description.length}/500 {t("createCollection.characters")}
                 </p>

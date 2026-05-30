@@ -95,7 +95,6 @@ export function UserDropdown() {
 
         <div className="py-1">
           <Link
-            href={`/${locale}/creator-dashboard`}
             href={localizedRoute("/creator-dashboard")}
             role="menuitem"
             className="flex items-center gap-3 px-4 py-2 text-sm text-white hover:bg-purple-600/20 transition-colors focus-visible:outline-none focus-visible:bg-purple-600/20"
@@ -105,7 +104,6 @@ export function UserDropdown() {
           </Link>
 
           <Link
-            href={`/${locale}/creator-dashboard/settings`}
             href={localizedRoute("/creator-dashboard/settings")}
             role="menuitem"
             className="flex items-center gap-3 px-4 py-2 text-sm text-white hover:bg-purple-600/20 transition-colors focus-visible:outline-none focus-visible:bg-purple-600/20"
