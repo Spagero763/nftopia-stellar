@@ -16,8 +16,9 @@ export function resolveStageFromRoute(context: StageResolutionContext): {
   routeNormalized: string;
 } {
   const { nextPathname } = context;
-  // Strip locale prefix (e.g., /en/explore → /explore)
-  const routeWithoutLocale = nextPathname.replace(/^\/[a-z]{2}(-[a-z]{2})?/, '') || '/';
+  // Strip locale prefix (e.g., /en, /en/, /en/explore → /, /explore)
+  let routeWithoutLocale = nextPathname.replace(/^\/[a-z]{2}(-[a-z]{2})?(\/|$)/, '/');
+  if (routeWithoutLocale === '' || routeWithoutLocale === '//') routeWithoutLocale = '/';
 
   // Stage resolution map
   const ROUTE_TO_STAGE_MAP: Record<string, FunnelStage> = {
@@ -25,9 +26,9 @@ export function resolveStageFromRoute(context: StageResolutionContext): {
     '^/explore/?$': FunnelStage.EXPLORE_CATEGORIES,
     '^/explore/[^/]+/?$': FunnelStage.EXPLORE_CATEGORIES,
     '^/marketplace/?$': FunnelStage.MARKETPLACE_BROWSE,
-    '^/marketplace/\\d+/?$': FunnelStage.COLLECTION_DETAIL,
-    '^/marketplace/filter': FunnelStage.MARKETPLACE_FILTERED,
-    '^/artists?/\\w+/?$': FunnelStage.ARTIST_PROFILE,
+    '^/marketplace/filter': FunnelStage.MARKETPLACE_FILTERED, // move this above collection detail
+    '^/marketplace/[^/]+/?$': FunnelStage.COLLECTION_DETAIL,
+    '^/artists?/[^/]+/?$': FunnelStage.ARTIST_PROFILE,
     '^/vault/?$': FunnelStage.VAULT_HOLDINGS,
     '^/creator-dashboard/?$': FunnelStage.CREATOR_ACTIVATION,
     '^/creator-dashboard/create.*': FunnelStage.CREATE_COLLECTION,
