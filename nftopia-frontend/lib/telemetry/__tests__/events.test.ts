@@ -70,10 +70,11 @@ test("buildTelemetryEvent enforces payload type", () => {
     buildTelemetryEvent("wallet_connect_submitted", {
       provider: "freighter",
       surface: "modal",
+      attempt_id: "test-attempt-id",
     })
   ).toEqual({
     eventName: "wallet_connect_submitted",
-    payload: { provider: "freighter", surface: "modal" },
+    payload: { provider: "freighter", surface: "modal", attempt_id: "test-attempt-id" },
   });
   // TypeScript compile-time test (uncomment to check):
   // buildTelemetryEvent("wallet_connect_submitted", { foo: "bar" }); // Should error if uncommented
