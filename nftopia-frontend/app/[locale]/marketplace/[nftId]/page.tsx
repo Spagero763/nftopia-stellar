@@ -172,7 +172,7 @@ export default function NFTDetailPage() {
     );
   }
 
-  const isCreator = nft.creatorId === nft.ownerId;
+  const isCreator = nft.creator?.id === nft.ownerId;
   const creatorAddress = nft.creator?.walletAddress || nft.creator?.id || "Unknown";
   const ownerAddress = nft.owner?.walletAddress || nft.owner?.id || "Unknown";
 
