@@ -101,6 +101,24 @@
     "royalties": "Royalties",
     "mint": "Mint NFT"
   },
+  "creatorProfile": {
+    "verified": "Verified",
+    "followers": "followers",
+    "nftsCreated": "NFTs",
+    "volume": "volume",
+    "tabNfts": "NFTs",
+    "tabCollections": "Collections",
+    "tabActivity": "Activity",
+    "sortNewest": "Newest",
+    "sortPrice": "Price",
+    "emptyNfts": "No NFTs yet",
+    "emptyCollections": "No collections yet",
+    "emptyActivity": "No activity yet",
+    "notFound": "Creator not found",
+    "activityMint": "Minted",
+    "activitySale": "Sold",
+    "activityListing": "Listed"
+  },
   "common": {
     "loading": "Loading...",
     "error": "Error",

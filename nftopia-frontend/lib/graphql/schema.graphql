@@ -199,6 +199,12 @@ type Mutation {
 
   """Execute NFT purchase against an active listing"""
   buyNFT(listingId: ID!): TransactionResult!
+
+  """Follow a creator"""
+  followCreator(creatorId: ID!): FollowResult!
+
+  """Unfollow a creator"""
+  unfollowCreator(creatorId: ID!): FollowResult!
 }
 
 type NFT {
@@ -373,6 +379,9 @@ type Query {
   """Fetch a user by Stellar address"""
   userByAddress(address: String!): User
 
+  """Fetch a public creator profile by id, username, or wallet address"""
+  publicCreator(identifier: String!): PublicCreator!
+
   """Fetch a single auction by ID"""
   auction(id: ID!): Auction!
 }
@@ -445,5 +454,61 @@ type User {
   auctions(pagination: PaginationInput): AuctionConnection
   purchases(pagination: PaginationInput): OrderConnection
   sales(pagination: PaginationInput): OrderConnection
+}
+
+type PublicCreator {
+  id: ID!
+  username: String
+  bio: String
+  avatarUrl: String
+  bannerUrl: String
+  website: String
+  twitterHandle: String
+  instagramHandle: String
+  isVerified: Boolean!
+  followerCount: Int!
+  followingCount: Int!
+  totalNftsCreated: Int!
+  totalSalesVolume: String!
+  createdAt: DateTime!
+  isFollowing: Boolean
+  nfts(pagination: PaginationInput, sortBy: CreatorNftSort): NFTConnection
+  collections(pagination: PaginationInput): CollectionConnection
+  activity(pagination: PaginationInput): CreatorActivityConnection
+}
+
+enum CreatorNftSort {
+  NEWEST
+  PRICE
+}
+
+enum CreatorActivityType {
+  MINT
+  SALE
+  LISTING
+}
+
+type CreatorActivityItem {
+  type: CreatorActivityType!
+  occurredAt: DateTime!
+  nftId: ID
+  price: String
+  currency: String
+}
+
+type CreatorActivityEdge {
+  node: CreatorActivityItem!
+  cursor: String!
+}
+
+type CreatorActivityConnection {
+  edges: [CreatorActivityEdge!]!
+  totalCount: Int!
+}
+
+type FollowResult {
+  success: Boolean!
+  followerCount: Int!
+  isFollowing: Boolean!
 }
 

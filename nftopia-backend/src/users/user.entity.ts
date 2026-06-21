@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { UserWallet } from '../auth/entities/user-wallet.entity';
 import { UserRole } from '../common/enums/user-role.enum';
 
@@ -93,4 +93,7 @@ export class User {
 
   @OneToMany(() => UserWallet, (wallet) => wallet.user)
   wallets?: UserWallet[];
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
 }

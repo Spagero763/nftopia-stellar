@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Headers,
+  NotFoundException,
   Param,
   Patch,
   Req,
@@ -55,8 +56,15 @@ export class UsersController {
   }
 
   @Get(':address')
-  getPublicProfile(@Param('address') address: string) {
-    return this.usersService.findByAddress(address);
+  async getPublicProfile(@Param('address') address: string) {
+    const user =
+      (await this.usersService.findByStellarAddress(address)) ??
+      (await this.usersService.findByUsername(address));
+    if (!user || user.isBanned) {
+      throw new NotFoundException('User not found');
+    }
+    const { email, passwordHash, ...publicFields } = user;
+    return publicFields;
   }
 
   // TEMP ownership enforcement
