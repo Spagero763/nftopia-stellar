@@ -174,6 +174,8 @@ export default function NFTDetailPage() {
 
   const isCreator = nft.creator?.id === nft.ownerId;
   const creatorAddress = nft.creator?.walletAddress || nft.creator?.id || "Unknown";
+  const creatorProfileSlug =
+    nft.creator?.username || nft.creator?.id || creatorAddress;
   const ownerAddress = nft.owner?.walletAddress || nft.owner?.id || "Unknown";
 
   return (
@@ -286,9 +288,12 @@ export default function NFTDetailPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm text-white truncate">
-                      {formatAddress(creatorAddress)}
-                    </span>
+                    <Link
+                      href={`/creator/${encodeURIComponent(creatorProfileSlug)}`}
+                      className="font-mono text-sm text-white truncate hover:text-purple-300 transition-colors"
+                    >
+                      {nft.creator?.username || formatAddress(creatorAddress)}
+                    </Link>
                     <button
                       onClick={() => handleCopyAddress(creatorAddress)}
                       className="text-gray-500 hover:text-gray-300 transition-colors flex-shrink-0"

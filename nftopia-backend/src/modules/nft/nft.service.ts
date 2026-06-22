@@ -561,13 +561,30 @@ export class NftService {
     const qb = this.createBaseQuery(query);
 
     if (query.after) {
-      qb.andWhere(
-        '(nft.createdAt < :cursorCreatedAt OR (nft.createdAt = :cursorCreatedAt AND nft.id < :cursorId))',
-        {
-          cursorCreatedAt: new Date(query.after.createdAt),
-          cursorId: query.after.id,
-        },
-      );
+      if (query.sortBy === 'PRICE') {
+        qb.andWhere(
+          '(nft.lastPrice < :cursorPrice OR (nft.lastPrice = :cursorPrice AND nft.id < :cursorId) OR (nft.lastPrice IS NULL AND nft.id < :cursorId))',
+          {
+            cursorPrice: query.after.price ?? '0',
+            cursorId: query.after.id,
+          },
+        );
+      } else {
+        qb.andWhere(
+          '(nft.createdAt < :cursorCreatedAt OR (nft.createdAt = :cursorCreatedAt AND nft.id < :cursorId))',
+          {
+            cursorCreatedAt: new Date(query.after.createdAt),
+            cursorId: query.after.id,
+          },
+        );
+      }
+    }
+
+    if (query.sortBy === 'PRICE') {
+      return qb
+        .orderBy('nft.lastPrice', 'DESC', 'NULLS LAST')
+        .addOrderBy('nft.id', 'DESC')
+        .take(first + 1);
     }
 
     return qb
