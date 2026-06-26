@@ -308,7 +308,7 @@ impl NftCollection {
         env.storage().instance().get(&DataKey::FactoryAddress)
     }
 
-    pub fn is_factory(env: Env, factory: Address) -> bool {
+    pub fn is_fact(env: Env, factory: Address) -> bool {
         match env
             .storage()
             .instance()
