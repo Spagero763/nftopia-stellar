@@ -122,7 +122,5 @@ pub fn apply_multiplier_bps(gas: u64, bps: u32) -> u64 {
 
 /// Apply a multiplier expressed in basis points (10_000 = 1×) to a cost value.
 pub fn apply_multiplier_cost_bps(cost: i128, bps: u32) -> i128 {
-    ((cost as i128)
-        .saturating_mul(bps as i128)
-        .saturating_div(10_000)) as i128
+    cost.saturating_mul(bps as i128).saturating_div(10_000)
 }
